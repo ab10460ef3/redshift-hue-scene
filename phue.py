@@ -2,12 +2,34 @@
 # -*- coding: utf-8 -*-
 
 '''
+
 phue by Nathanaël Lécaudé - A Philips Hue Python library
 Contributions by Marshall Perrin, Justin Lintz
 https://github.com/studioimaginaire/phue
 Original protocol hacking by rsmck : http://rsmck.co.uk/hue
 
-Published under the MIT license - See LICENSE file for more details.
+The MIT License (MIT)
+
+Copyright (c) 2014 Nathanaël Lécaudé
+https://github.com/studioimaginaire/phue
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
 "Hue Personal Wireless Lighting" is a trademark owned by Koninklijke Philips Electronics N.V., see www.meethue.com for more information.
 I am in no way affiliated with the Philips organization.
@@ -19,6 +41,7 @@ import os
 import platform
 import sys
 import socket
+
 if sys.version_info[0] > 2:
     PY3K = True
 else:
@@ -1209,6 +1232,84 @@ class Bridge(object):
         logger.warn("run_scene: did not find a scene: %s "
                     "that shared lights with group %s",
                     (scene_name, group))
+
+    def set_scene_lights(self, scene_object, parameter, light_id=None, value=None, transitiontime=None):
+        """ Adjust properties of one or more lights within scene.
+
+        scene_object is an array or object of class Scene
+        parameters: 'on' : True|False , 'bri' : 0-254, 'sat' : 0-254, 'ct': 154-500
+
+        transitiontime : in **deciseconds**, time for this transition to take place
+                         Note that transitiontime only applies to *this* light
+                         command, it is not saved as a setting for use in the future!
+                         Use the Light class' transitiontime attribute if you want
+                         persistent time settings.
+
+        """
+        if isinstance(parameter, dict):
+            data = parameter
+        else:
+            data = {parameter: value}
+
+        if transitiontime is not None:
+            data['transitiontime'] = int(round(
+                transitiontime))  # must be int for request format
+
+
+
+        try:
+            test = iter(scene_object)
+            scene_array = scene_object
+        except TypeError:
+            scene_array = [scene_object]
+
+        if PY3K:
+            if isinstance(light_id, int) or isinstance(light_id, str):
+                light_id_array = [light_id]
+        else:
+            if isinstance(light_id, int) or isinstance(light_id, str) or isinstance(light_id, unicode):
+                light_id_array = [light_id]
+        result = []
+
+        for scene in scene_array:
+            if light_id:
+                light_id_array = light_id
+            else:
+                light_id_array = scene.lights
+
+            for light in light_id_array:
+                logger.debug(str(data))
+                if parameter == 'name':
+                    result.append(self.request('PUT',
+                                               '/api/' + self.username +
+                                               '/scenes/' + scene.scene_id +
+                                               '/lightstates/' + str(light_id),
+                                               json.dumps(data)))
+                else:
+                    if PY3K:
+                        if isinstance(light, str):
+                            converted_light = self.get_light_id_by_name(light)
+                        else:
+                            converted_light = light
+                        if isinstance(light, str):
+                            converted_light = self.get_light_id_by_name(light)
+                    else:
+                        if isinstance(light, str) or isinstance(light, unicode):
+                                converted_light = self.get_light_id_by_name(light)
+                        else:
+                            converted_light = light
+
+                    request_object = self.request('PUT', '/api/' + self.username +
+                                                  '/scenes/' + scene.scene_id +
+                                                  '/lightstates/' + str(converted_light),
+                                                  json.dumps(data))
+                    result.append(request_object)
+                if 'error' in list(result[-1][0].keys()):
+                    logger.warn("ERROR: {0} for scene light {1}".format(
+                        result[-1][0]['error']['description'], scene.name))
+
+        logger.debug(result)
+        return result
 
     # Schedules #####
     def get_schedule(self, schedule_id=None, parameter=None):
