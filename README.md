@@ -29,6 +29,7 @@ config_defaults = {
     'temp-night': 2000,
     'brightness': 1.0,
     'brightness-day': 1.0,
+    'brightness-evening': 0.8,
     'brightness-night': 0.35,
     'lat':40.7128,
     'lon':-74.0059,
@@ -37,7 +38,8 @@ config_defaults = {
 ```
 
 - Scenes with "redshift" or "brightshift" in the name (case-insensitive) will be updated by the script
-- "Redshift" applies dimness settings, "brightshift" applies full brightness.
+- "Redshift" applies full dimness settings, "brightshift" applies evening brightness.
+ They are indended as replacemenst for 'Nightlight' and 'Daylight/Dimmed' scenes respectively.
 
 # Unimplemented features 
 
