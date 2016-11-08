@@ -38,8 +38,8 @@ logging.basicConfig(format=log_format, level=logging.INFO)
 log = logging.getLogger('redshift-hue')
 
 config_defaults = {
-    'temp-day': 2000,
-    'temp-night': 3500,
+    'temp-day': 3500,
+    'temp-night': 2000,
     'brightness': 1.0,
     'brightness-day': 1.0,
     'brightness-night': 0.35,
