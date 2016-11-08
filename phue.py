@@ -1255,8 +1255,6 @@ class Bridge(object):
             data['transitiontime'] = int(round(
                 transitiontime))  # must be int for request format
 
-
-
         try:
             test = iter(scene_object)
             scene_array = scene_object
@@ -1299,7 +1297,8 @@ class Bridge(object):
                         else:
                             converted_light = light
 
-                    request_object = self.request('PUT', '/api/' + self.username +
+                    request_object = self.request('PUT',
+                                                  '/api/' + self.username +
                                                   '/scenes/' + scene.scene_id +
                                                   '/lightstates/' + str(converted_light),
                                                   json.dumps(data))
