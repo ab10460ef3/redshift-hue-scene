@@ -44,7 +44,7 @@ config_defaults = {
     'brightness-day': 1.0,
     'brightness-night': 0.35,
     'lat':40.7128,
-    'lon':74.0059,
+    'lon':-74.0059, # negative in the western hemisphere 
     'hue-address': '192.168.1.102'
 }
 
