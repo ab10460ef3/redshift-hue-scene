@@ -26,47 +26,37 @@ SOFTWARE.
 
 '''
 
-
-import configparser as ConfigParser
 import datetime
 import logging
-import os
 import time
 
 from phue import Bridge
 from Pysolar.solar import GetAltitude
-from xdg.BaseDirectory import xdg_config_home
-
 
 log_format = '%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s'
 logging.basicConfig(format=log_format, level=logging.INFO)
 log = logging.getLogger('redshift-hue')
 
 config_defaults = {
-    'temp-day': '5500',
-    'temp-night': '3500',
-    'brightness': '1.0',
-    'dimmable-lights': '1',
-    'color-lights': '1',
+    'temp-day': 2000,
+    'temp-night': 3500,
+    'brightness': 1.0,
+    'brightness-day': 1.0,
+    'brightness-night': 0.35,
+    'lat':40.7128,
+    'lon':74.0059,
+    'hue-address': '192.168.1.102'
 }
-config = ConfigParser.ConfigParser(config_defaults)
-config.read([
-    os.path.join(xdg_config_home, 'redshift.conf'),
-    '/etc/redshift.conf',
-])
 
-try:
-    lat = config.getfloat('manual', 'lat')
-    lon = config.getfloat('manual', 'lon')
-except ConfigParser.NoOptionError:
-    log.error('Latitude and longitude must be set.')
-    raise
+lat = config_defaults['lat']
+lon = config_defaults['lon']
+
 log.debug(
     'Location: %.2f %s, %.2f %s',
     abs(lat), 'SN'[lat >= 0.], abs(lon), 'WE'[lon >= 0.])
 
-temperature_day = config.getint('redshift', 'temp-day')
-temperature_night = config.getint('redshift', 'temp-night')
+temperature_day = config_defaults['temp-day']
+temperature_night = config_defaults['temp-night']
 log.debug(
     'Temperatures: %dK at day, %dK at night',
     temperature_day, temperature_night)
@@ -77,19 +67,21 @@ log.debug(
     'Solar elevations: day above %.1f, night below %.1f',
     transition_high, transition_low)
 
-brightness = config.getfloat('redshift', 'brightness')
+brightness = config_defaults['brightness']
 try:
-    brightness_day = config.getfloat('redshift', 'brightness-day')
-except ConfigParser.NoOptionError:
+    brightness_day = config_defaults['brightness-day']
+except KeyError:
     brightness_day = brightness
 try:
-    brightness_night = config.getfloat('redshift', 'brightness-night')
-except ConfigParser.NoOptionError:
+    brightness_night = config_defaults['brightness-night']
+except KeyError:
     brightness_night = brightness
 
-bridge_address = config.get('hue', 'address')
-dimmable_lights = map(int, config.get('hue', 'dimmable-lights').split(','))
-color_lights = map(int, config.get('hue', 'color-lights').split(','))
+bridge_address = config_defaults['hue-address']
+
+# TODO poll capibilities of lights from the hub
+#dimmable_lights = map(int, config.get('hue', 'dimmable-lights').split(','))
+#color_lights = map(int, config.get('hue', 'color-lights').split(','))
 
 bridge = Bridge(bridge_address)
 bridge.connect()
@@ -133,7 +125,7 @@ def interpolate(elevation):
 
 
 while True:
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now()
     elevation = GetAltitude(lat, lon, now)
     log.debug('Solar elevation: %f', elevation)
 
@@ -144,8 +136,16 @@ while True:
     log.info('Brightness: %.2f', brightness)
 
     mired = int(1000000. / temperature)
-    bridge.set_light(color_lights, 'ct', mired)
 
-    bridge.set_light(dimmable_lights, 'bri', int(brightness * 255))
 
-    time.sleep(5.0)
+    #bridge.set_light(color_lights, 'ct', mired)
+
+    #bridge.set_light(dimmable_lights, 'bri', int(brightness * 255))
+
+    redshift_scenes =   { scene.name:scene for scene in bridge.scenes if 'redshift' in scene.name.lower()}
+    for scene_object in redshift_scenes.values():
+        print('updating scene: ' + scene_object.name)
+        bridge.set_scene_lights(scene_object,{'ct':mired,'on':True,'bri':int(brightness * 255)})
+
+
+    time.sleep(60.0)
