@@ -8,7 +8,7 @@ dimmed scene configuration based on the altitude of the sun.
 
 ## This software is in active development. USE AT YOUR OWN RISK! 
 
-## Lights must have a brightness appled to turn on.
+## Lights must have a brightness appled to turn on a light.
 
 # Requirements & Dependancies
 
