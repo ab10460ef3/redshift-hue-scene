@@ -29,9 +29,10 @@ SOFTWARE.
 import datetime
 import logging
 import time
+from time import sleep
 
 from phue import Bridge
-from Pysolar.solar import GetAltitude
+from pysolar.solar import *
 
 log_format = '%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s'
 logging.basicConfig(format=log_format, level=logging.INFO)
@@ -44,7 +45,7 @@ config_defaults = {
     'brightness-day': 1.0,
     'brightness-night': 0.35,
     'lat':40.7128,
-    'lon':-74.0059, # negative in the western hemisphere 
+    'lon':-74.0059,
     'hue-address': '192.168.1.102'
 }
 
@@ -126,7 +127,7 @@ def interpolate(elevation):
 
 while True:
     now = datetime.datetime.now()
-    elevation = GetAltitude(lat, lon, now)
+    elevation = get_altitude(lat, lon, now)
     log.debug('Solar elevation: %f', elevation)
 
     temperature, brightness = interpolate(elevation)
@@ -147,5 +148,9 @@ while True:
         print('updating scene: ' + scene_object.name)
         bridge.set_scene_lights(scene_object,{'ct':mired,'on':True,'bri':int(brightness * 255)})
 
+    brightshift_scenes =   { scene.name:scene for scene in bridge.scenes if 'brightshift' in scene.name.lower()}
+    for scene_object in brightshift_scenes.values():
+        print('updating scene: ' + scene_object.name)
+        bridge.set_scene_lights(scene_object,{'ct':mired,'on':True,'bri':int(1 * 255)})
 
-    time.sleep(60.0)
+    sleep(60.0)
