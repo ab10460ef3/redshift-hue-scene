@@ -21,4 +21,8 @@ Configuration of scenes and bulb temperature is done with
 naming conventions using the scene or bulb names in the hub.
 
 - Scenes with "redshift" in the name (case-insensitive) will be updated by the script
-- Bulbs with "ct+<number>" i.e. ct+1000 will be skewed in the direction sign (+/-) by given number
+
+# Unimplemented features 
+
+- Bulbs named "ct<+/-><number>" i.e. ct+1000 will be shifted on the mired scale (+/-) by given number
+- Scenes named "m60e180" will shift transitions toward midnight in the morning or evening specified in minutes
