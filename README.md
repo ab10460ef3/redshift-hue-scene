@@ -37,10 +37,19 @@ config_defaults = {
 }
 ```
 
-- Scenes with "redshift" or "brightshift" in the name (case-insensitive) will be updated by the script
-- "Redshift" applies full dimness settings, "brightshift" applies evening brightness.
- They are indended as replacemenst for 'Nightlight' and 'Daylight/Dimmed' scenes respectively.
+- Configure two scenes for each group you want to be color shifted as follows:
+
+1. A scene for dimmed evening/morning mode with "dimshift" in the name i.e. "Kitchen dimshift"
+2. A scene for nightlight mode with "nightshift" i.e. "Bathroom nighshift"
+
+ 
+![scene configuration in app](https://github.com/ab10460ef3/redshift-hue-scene/blob/master/doc/scene_creation.png?raw=true "Scene Creation")
+
+
+- Scenes with "nightshift" or "dimshift" in the name (case-insensitive) will be updated by the script
+- "nightshift" applies full nightlight like settings, "dimshift" applies the evening brightness.
+ They are indended as replacemenst for 'Nightlight' and 'Dimmed' scenes respectively, but with temperature shifting.
 
 # Unimplemented features 
 
-- Bulbs named "ct<+/-><number>" i.e. ct+1000 will be shifted on the mired scale (+/-) by given number
+- Bulbs named "ct<+/-number>" i.e. ct+1000 will be shifted on the mired scale (+/-) by given number
