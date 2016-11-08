@@ -43,6 +43,7 @@ config_defaults = {
     'temp-night': 2000,
     'brightness': 1.0,
     'brightness-day': 1.0,
+    'brightness-evening': 0.8,
     'brightness-night': 0.35,
     'lat':40.7128,
     'lon':-74.0059,
@@ -77,6 +78,10 @@ try:
     brightness_night = config_defaults['brightness-night']
 except KeyError:
     brightness_night = brightness
+try:
+    brightness_evening = config_defaults['brightness-evening']
+except KeyError:
+    brightness_evening = brightness
 
 bridge_address = config_defaults['hue-address']
 
@@ -118,11 +123,15 @@ def get_transition_progress(elevation):
     }[period]
 
 
-def interpolate(elevation):
+def interpolate_temperatue(elevation, temperature_night, temperature_day):
     alpha = get_alpha(elevation)
     temperature = (1.0 - alpha) * temperature_night + alpha * temperature_day
+    return temperature
+
+def interpolate_brightness(elevation, brightness_night, brightness_day):
+    alpha = get_alpha(elevation)
     brightness = (1.0 - alpha) * brightness_night + alpha * brightness_day
-    return temperature, brightness
+    return brightness
 
 
 while True:
@@ -130,7 +139,10 @@ while True:
     elevation = get_altitude(lat, lon, now)
     log.debug('Solar elevation: %f', elevation)
 
-    temperature, brightness = interpolate(elevation)
+    temperature = interpolate_temperatue(elevation, temperature_night, temperature_day)
+    brightness = interpolate_brightness(elevation, brightness_night, brightness_day )
+    evening_brightness = interpolate_brightness(elevation, brightness_evening, brightness_day )
+
     transition = get_transition_progress(elevation)
     log_period(get_period(elevation), transition)
     log.info('Color temperature: %dK', temperature)
@@ -143,14 +155,18 @@ while True:
 
     #bridge.set_light(dimmable_lights, 'bri', int(brightness * 255))
 
+    # Used for rooms that should be less dim during some interval of the day.
+    brightshift_scenes =   { scene.name:scene for scene in bridge.scenes if 'brightshift' in scene.name.lower()}
+
+    for scene_object in brightshift_scenes.values():
+        print('updating scene: ' + scene_object.name)
+        bridge.set_scene_lights(scene_object,{'ct':mired,'on':True,'bri':int(evening_brightness * 255)})
+
+    # Used for rooms that should be less dim during some interval of the day.
     redshift_scenes =   { scene.name:scene for scene in bridge.scenes if 'redshift' in scene.name.lower()}
+
     for scene_object in redshift_scenes.values():
         print('updating scene: ' + scene_object.name)
         bridge.set_scene_lights(scene_object,{'ct':mired,'on':True,'bri':int(brightness * 255)})
-
-    brightshift_scenes =   { scene.name:scene for scene in bridge.scenes if 'brightshift' in scene.name.lower()}
-    for scene_object in brightshift_scenes.values():
-        print('updating scene: ' + scene_object.name)
-        bridge.set_scene_lights(scene_object,{'ct':mired,'on':True,'bri':int(1 * 255)})
 
     sleep(60.0)

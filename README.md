@@ -37,7 +37,7 @@ config_defaults = {
 ```
 
 - Scenes with "redshift" or "brightshift" in the name (case-insensitive) will be updated by the script
-- "Redshift" dims, brightshift does not.
+- "Redshift" applies dimness settings, "brightshift" applies full brightness.
 
 # Unimplemented features 
 
