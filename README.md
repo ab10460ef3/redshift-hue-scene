@@ -43,7 +43,7 @@ config_defaults = {
 2. A scene for nightlight mode with "nightshift" i.e. "Bathroom nighshift"
 
  
-![scene configuration in app](https://github.com/ab10460ef3/redshift-hue-scene/blob/master/doc/scene_creation.png?raw=true =250x)
+<img src="https://github.com/ab10460ef3/redshift-hue-scene/blob/master/doc/scene_creation.png?raw=true" width="200">
 
 
 - Scenes with "nightshift" or "dimshift" in the name (case-insensitive) will be updated by the script
