@@ -44,7 +44,7 @@ config_defaults = {
     'brightness': 1.0,
     'brightness-day': 1.0,
     'brightness-evening': 0.8,
-    'brightness-night': 0.35,
+    'brightness-night': 0.15,
     'lat':40.7128,
     'lon':-74.0059,
     'hue-address': '192.168.1.102'
@@ -176,8 +176,8 @@ while True:
 
     # Update lights just the temperature of lights that are on
 
-    active_lights = { light.light_id : light for light in bridge.lights if light.on }
-    bridge.set_light(active_lights.keys(), {'ct':mired} , transitiontime=1)
+    #active_lights = { light.light_id : light for light in bridge.lights if light.on }
+    #bridge.set_light(active_lights.keys(), {'ct':mired} , transitiontime=1)
 
 
 
