@@ -39,15 +39,15 @@ config_defaults = {
 
 - Configure two scenes for each group you want to be color shifted as follows:
 
-1. A scene for dimmed evening/morning mode with "dimshift" in the name i.e. "Kitchen dimshift"
+1. A scene for dimmed evening/morning mode with "dayshift" in the name i.e. "Kitchen dayshift"
 2. A scene for nightlight mode with "nightshift" i.e. "Bathroom nighshift"
 
  
 <img src="https://github.com/ab10460ef3/redshift-hue-scene/blob/master/doc/scene_creation.png?raw=true" width="200">
 
 
-- Scenes with "nightshift" or "dimshift" in the name (case-insensitive) will be updated by the script
-- "nightshift" applies full nightlight like settings, "dimshift" applies the evening brightness.
+- Scenes with "nightshift" or "dayshift" in the name (case-insensitive) will be updated by the script
+- "nightshift" applies full nightlight like settings, "dayshift" applies the evening brightness.
  They are indended as replacemenst for 'Nightlight' and 'Dimmed' scenes respectively, but with temperature shifting.
 
 # Unimplemented features 
