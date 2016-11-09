@@ -48,21 +48,21 @@ config_defaults = {
 # Scene Configuration
 
 Configuration of scenes and bulb temperature is done with
-naming conventions using the scene or bulb names in the hub. Probably done using the hue app or something similar.
+naming conventions using the scene or bulb names in the hub. This is most easily done with the app
+ or your preferred method of configuration. 
 
 - Scenes with "nightshift" or "dayshift" in the name (case-insensitive) will be updated by the script
 - "nightshift" applies `brightness-night` settings, "dayshift" applies the `brightness-evening`.
  They are intended as replacements for 'Nightlight' and 'Dimmed' scenes respectively,
   but with temperature shifting.
-
-- Configure two scenes for each group you want to be color shifted as follows:
-
-1. A scene for dimmed evening/morning mode with "dayshift" in the name i.e. "Kitchen dayshift"
-2. A scene for nightlight mode with "nightshift" i.e. "Bathroom nighshift"
-
+- Scenes are actually room specific, so if you have 4 sensors in 4 rooms, you'll need 8 scenes.
  
 <img src="https://github.com/ab10460ef3/redshift-hue-scene/blob/master/doc/scene_creation.png?raw=true" width="200">
 
+This approach allows you to configure your lights in the 
+  way you do now, instead of logging into a raspberry pi and using vi on a config file when you 
+  want to adjust add a light or adjust times.
+  
 # Unimplemented features 
 
 - Bulbs named "ct<+/-number>" i.e. ct+1000 will be shifted on the mired scale (+/-) by given number
