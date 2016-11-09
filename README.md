@@ -61,7 +61,7 @@ naming conventions using the scene or bulb names in the hub. This is most easily
 
 This approach allows you to configure your lights in the 
   way you do now, instead of logging into a raspberry pi and using vi on a config file when you 
-  want to adjust add a light or adjust times.
+  want to add a light or adjust times.
   
 # Unimplemented features 
 
