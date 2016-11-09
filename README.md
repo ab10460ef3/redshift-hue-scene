@@ -73,6 +73,6 @@ naming conventions using the scene or bulb names in the hub. Probably done using
 # Limitations
 
 - Utilizing `/api/.../scene/x/lights` as treated in version 1.11 of the hue API was not included in phue lib at the time of 
-writing. The function `set_scene_lights()` fills was added, but in such away as to be general enough 
+writing. So the function `set_scene_lights()` was added. It was written in such away as to be general enough 
 for inclusion in the main phue project. Although it would be a lot easier to include logic specific to this 
 side project in the function, it would no longer be a general function. 
