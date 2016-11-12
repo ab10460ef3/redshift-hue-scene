@@ -29,20 +29,23 @@ Depends on pysolar==0.7 and custom phue (included)
 
 # Configuration
 
-Location and hub address, as well as color temperatures and dimness is configured by variables in `config_defaults`.
+Location and hub address, as well as color temperatures and dimness is configured by global variables.
 
 ```python
-config_defaults = {
-    'temp-day': 3500,
-    'temp-night': 2000,
-    'brightness': 1.0,
-    'brightness-day': 1.0,
-    'brightness-evening': 0.8,
-    'brightness-night': 0.35,
-    'lat':40.7128,
-    'lon':-74.0059,
-    'hue-address': '192.168.1.102'
-}
+TEMP_DAY           = 3500
+TEMP_NIGHT         = 2300
+BRIGHTNESS         = 1.0
+BRIGHTNESS_DAY     = 1.0
+BRIGHTNESS_EVENING = 0.8
+BRIGHTNESS_NIGHT   = 0.15
+TRANSITION_TIME    = 100  # deciseconds
+SLEEP_TIME         = 120  # seconds
+LAT                =  40.7128  # North of the Equaitor is positive 
+LON                = -74.0059  # East of Greenwich is positive 
+BRIDGE_ADDRESS     = '192.168.1.102'
+
+SHIFT_ALL_LIGHTS   = True
+TWEAK_MOTION_DIM   = True
 ```
 
 # Scene Configuration
@@ -52,7 +55,7 @@ naming conventions using the scene or bulb names in the hub. This is most easily
  or your preferred method of configuration. 
 
 - Scenes with "nightshift" or "dayshift" in the name (case-insensitive) will be updated by the script
-- "nightshift" applies `brightness-night` settings, "dayshift" applies the `brightness-evening`.
+- "nightshift" applies `BRIGHTNESS_NIGHT` settings, "dayshift" applies the `BRIGHTNESS_EVENING`.
  They are intended as replacements for 'Nightlight' and 'Dimmed' scenes respectively,
   but with temperature shifting.
 - Scenes are actually room specific, so if you have 4 sensors in 4 rooms, you'll need 8 scenes.
@@ -65,14 +68,8 @@ This approach allows you to configure your lights in the
   
 # Unimplemented features 
 
-- Bulbs named "ct<+/-number>" i.e. ct+1000 will be shifted on the mired scale (+/-) by given number
-- Add condition comparing previous iteration to reduce chattyness.
-- default transistiontime delay.
+- Bulbs named "ct<+/-number>" i.e. ct+50 will be shifted on the mired scale (+/-) by given number
+- ~~Add condition comparing previous iteration to reduce chattyness~~
+- ~~default transistiontime delay.~~
 - debian service files
 
-# Limitations
-
-- Utilizing `/api/.../scene/x/lights` as treated in version 1.11 of the hue API was not included in phue lib at the time of 
-writing. So the function `set_scene_lights()` was added. It was written in such away as to be general enough 
-for inclusion in the main phue project. Although it would be a lot easier to include logic specific to this 
-side project in the function, it would no longer be a general function. 

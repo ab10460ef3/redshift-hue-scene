@@ -105,6 +105,13 @@ class Light(object):
         self._reachable = None
         self._type = None
 
+    def __lt__(self,other):
+        # sort by light_id
+        if self.light_id < other.light_id:
+            return 1
+        else:
+            return 0
+
     def __repr__(self):
         # like default python repr function, but add light name
         return '<{0}.{1} object "{2}" at {3}>'.format(
@@ -453,7 +460,6 @@ class Sensor(object):
         self._recycle = self._get('manufacturername')
         return self._manufacturername
 
-
 class Group(Light):
 
     """ A group of Hue lights, tracked as a group on the bridge
@@ -568,8 +574,10 @@ class Scene(object):
         self.lastupdated = lastupdated
         if lights is not None:
             self.lights = sorted([int(x) for x in lights])
+            self.light_objects = sorted([x for x in lights])
         else:
             self.lights = []
+            self.light_objects = []
         self.locked = locked
         self.name = name
         self.owner = owner
@@ -585,6 +593,54 @@ class Scene(object):
             self.scene_id,
             self.name,
             self.lights)
+
+class RuleCondition(object):
+    pass
+
+class RuleAction(object):
+    pass
+
+
+class Rule(object):
+
+    """ Hue Rule object
+
+    Rule conditions and actions can be read and updated via the properties of this object
+
+    """
+    def __init__(self, rid,
+                 name=None, lasttriggered=None,
+                 created=None, timestriggered=False, owner="",
+                 status="", conditions=None, actions=None, recycle=None):
+        self.rule_id = rid
+
+        self.name           = name
+        self.lasttriggered  = lasttriggered
+        self.created   = created
+        self.timestriggered = timestriggered
+        self.owner          = owner
+        self.status         = status
+        self.recycle        = recycle
+        self.conditions     = conditions
+        self.actions        = actions
+
+    def __lt__(self,other):
+        # sort by light_id
+        if self.light_id < other.light_id:
+            return 1
+        else:
+            return 0
+
+
+    def __repr__(self):
+        # like default python repr function, but add rule name
+        return '<{0}.{1} object "{2}" at {3}>'.format(
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.name,
+            hex(id(self)))
+
+
 
 
 class Bridge(object):
@@ -634,6 +690,8 @@ class Bridge(object):
         self.lights_by_name = {}
         self.sensors_by_id = {}
         self.sensors_by_name = {}
+        self.rules_by_id = {}
+        self.rules_by_name = {}
         self._name = None
 
         # self.minutes = 600 # these do not seem to be used anywhere?
@@ -824,6 +882,33 @@ class Bridge(object):
         if mode == 'list':
             return self.sensors_by_id.values()
 
+    def get_rule_id_by_name(self, name):
+        """ Lookup a rule id based on string name. Case-sensitive. """
+        rules = self.get_rule()
+        for rule_id in rules:
+            if PY3K:
+                if name == rules[rule_id]['name']:
+                    return rule_id
+            else:
+                if unicode(name, encoding='utf-8') == rules[rule_id]['name']:
+                    return rule_id
+        return False
+
+    def get_rule_objects(self, mode='list'):
+        """Returns a collection containing the rules, either by name or id (use 'id' or 'name' as the mode)
+        The returned collection can be either a list (default), or a dict.
+        Set mode='id' for a dict by rule ID, or mode='name' for a dict by rule name.   """
+        if self.rules_by_id == {}:
+            rules = self.request('GET', '/api/' + self.username + '/rules/')
+            for rule in rules:
+                self.rules_by_id[int(rule)] = Rule(self, int(rule))
+                self.rules_by_name[rules[rule]['name']] = self.rules_by_id[int(rule)]
+        if mode == 'id':
+            return self.rules_by_id
+        if mode == 'name':
+            return self.rules_by_name
+        if mode == 'list':
+            return self.rules_by_id.values()
 
     def __getitem__(self, key):
         """ Lights are accessibly by indexing the bridge either with
@@ -1233,6 +1318,9 @@ class Bridge(object):
                     "that shared lights with group %s",
                     (scene_name, group))
 
+
+
+    # TODO set individual light colors
     def set_scene_lights(self, scene_object, parameter, light_id=None, value=None, transitiontime=None):
         """ Adjust properties of one or more lights within scene.
 
@@ -1309,6 +1397,121 @@ class Bridge(object):
 
         logger.debug(result)
         return result
+
+
+
+    # Rules #####
+
+    @property
+    def rules(self):
+        return [Rule(k, **v) for k, v in self.get_rule().items()]
+
+    def get_rule(self):
+        return self.request('GET', '/api/' + self.username + '/rules')
+
+    def create_rule(self, name, conditions=[], action=[]):
+        """ Create a new rule in the bridge. Returns (ID,None) of the new sensor or (None,message) if creation failed. """
+        data = { "name": name,
+
+             }
+        if (isinstance(conditions, dict) and conditions != {}):
+            data["conditions"] = conditions
+
+        if (isinstance(action, dict) and action != {}):
+            data["action"] = action
+
+        result = self.request('POST', '/api/' + self.username + '/rules/', json.dumps(data))
+
+        if ("success" in result[0].keys()):
+            new_id = result[0]["success"]["id"]
+            logger.debug("Created rule with ID " + new_id)
+            new_rule = Rule(self, int(new_id))
+            self.rules_by_id[new_id] = new_rule
+            self.rules_by_name[name] = new_rule
+            return new_id,None
+        else:
+            logger.debug("Failed to create rule:" + repr(result[0]))
+            return None,result[0]
+
+
+    def set_rule(self, rule_id, parameter, value=None):
+        """ Adjust properties of a rule
+
+        rule_id must be a single rule.
+        parameters: 'name' : string
+
+        """
+        if isinstance(parameter, dict):
+            data = parameter
+        else:
+            data = {parameter: value}
+
+        result = None
+        logger.debug(str(data))
+        result = self.request('PUT', '/api/' + self.username + '/rules/' + str(
+            rule_id), json.dumps(data))
+        if 'error' in list(result[0].keys()):
+            logger.warn("ERROR: {0} for sensor {1}".format(
+                result[0]['error']['description'], rule_id))
+
+        logger.debug(result)
+        return result
+
+    def set_sensor_state(self, sensor_id, parameter, value=None):
+        """ Adjust the "state" object of a sensor
+
+        sensor_id must be a single sensor.
+        parameters: any parameter(s) present in the sensor's "state" dictionary.
+
+        """
+        self.set_sensor_content(sensor_id, parameter, value, "state")
+
+    def set_sensor_config(self, sensor_id, parameter, value=None):
+        """ Adjust the "config" object of a sensor
+
+        sensor_id must be a single sensor.
+        parameters: any parameter(s) present in the sensor's "config" dictionary.
+
+        """
+        self.set_sensor_content(sensor_id, parameter, value, "config")
+
+    def set_sensor_content(self, sensor_id, parameter, value=None, structure="state"):
+        """ Adjust the "state" or "config" structures of a sensor
+        """
+        if (structure != "state" and
+            structure != "config"):
+          logger.debug("set_sensor_current expects structure 'state' or 'config'.")
+          return False
+
+        if isinstance(parameter, dict):
+            data = parameter.copy()
+        else:
+            data = {parameter: value}
+
+        # Attempting to set this causes an error.
+        del data["lastupdated"]
+
+        result = None
+        logger.debug(str(data))
+        result = self.request('PUT', '/api/' + self.username + '/sensors/' + str(
+            sensor_id) + "/" + structure, json.dumps(data))
+        if 'error' in list(result[0].keys()):
+            logger.warn("ERROR: {0} for sensor {1}".format(
+                result[0]['error']['description'], sensor_id))
+
+        logger.debug(result)
+        return result
+
+    def delete_rule(self, rule_id):
+        try:
+            name = self.rule_by_id[rule_id].name
+            del self.rule_by_name[name]
+            del self.rule_by_id[rule_id]
+            return self.request('DELETE', '/api/' + self.username + '/rules/' + str(rule_id))
+        except:
+            logger.debug("Unable to delete nonexistent rule with ID {0}".format(rule_id))
+
+
 
     # Schedules #####
     def get_schedule(self, schedule_id=None, parameter=None):
