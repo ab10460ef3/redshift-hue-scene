@@ -6,10 +6,11 @@ utilizing a fork of [studioimaginaire's phue](https://github.com/studioimaginair
 the script reads a current hue configuration from a hub, and applies a color shifted and or 
 dimmed scene configuration based on the altitude of the sun.
 
-# Important
+# Status
 
-- This software is in active development.
-- USE AT YOUR OWN RISK! 
+- ~~This software is in active development.~~
+- USE AT YOUR OWN RISK!
+- Have used this script continuously in a 15 light 8 scene setup, no issues. 
 - It has been tested on 2nd and 3rd gen white ambiance and color bulbs.
 - It has been NOT been tested on non-dimmible or white only bulbs, or a first gen hub.
 
